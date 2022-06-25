@@ -11,3 +11,7 @@ gcc all: server client
 clean:
 	rm server
 	rm client
+start :	
+	make all
+	make clean
+	make all

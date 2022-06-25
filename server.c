@@ -212,7 +212,7 @@ char* generer_sha1(char* fichier){
 char * authenfier_pwd_ip(char *ip, char *pwd){
 
 	int found = 0;
-	char * ok = NULL;
+	char * ok;
 	FILE* fichier = fopen("ListClient.txt","a+");
 	char chaine[SIZE];
 	bzero(chaine,SIZE);
@@ -365,6 +365,9 @@ int main(int argc, char *argv[])
    char *check;
    char pwd[SIZE];
    char client_ip[SIZE];
+   char  etat_pass[SIZE];
+   char *nom_fichier1 = "send.sh";
+   
   
    while(1)
     {
@@ -380,18 +383,19 @@ int main(int argc, char *argv[])
 	 envoyer(connfd, check);
          bzero(&pwd, SIZE);
 	 recevoir(connfd, pwd);
-	 char  etat_pass[SIZE];
+	 
+
 	 bzero(&etat_pass, SIZE);
 	 strcpy(etat_pass, authenfier_pwd_ip(client_ip, pwd));
 	 envoyer(connfd, etat_pass);
 	 bzero(&etat_pass, SIZE);
 	 
        //envoyer le résultat de la fonction d'hachage du fichier avant de l'envoyer
-	char *nom_fichier1 = "send.sh";
+
        
        //appel function sendfile sur le port 7001
         sendfile(client_ip, nom_fichier1);
-       
+       	 bzero(&client_ip, SIZE);
   
        //fermé la conncetion de server
       // sleep(50);

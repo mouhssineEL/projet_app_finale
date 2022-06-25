@@ -55,12 +55,21 @@ char * loadFile(char *name, char  *fileBuff);
 
 //fonction receive file
 void receivefile(char *filename){
-
+    //declaration des variables
+	
     int port = 7001;
     int listenfd;
      // La structure avec les informations du serveur
     struct sockaddr_in serv_addr = {0};
-
+    int z;
+    char erreur[SIZE]; 
+    char sha1[SIZE];
+    char contenu_file[SIZE];
+    char sha2[SIZE];
+    char sha3[SIZE];
+    
+    
+    
     printf("[+] Création de la socket Serveur du port %d...\n",port);
     
     // Création de la socket serveur
@@ -71,7 +80,7 @@ void receivefile(char *filename){
     printf("[+] la socket a été bien crée \n");
     //applique l'option setoptsocket SO_LINGER
    struct linger so_linger;
-    int z;
+
     so_linger.l_onoff = TRUE;
     so_linger.l_linger = 0;
     z=setsockopt(listenfd,SOL_SOCKET,SO_LINGER,&so_linger,sizeof so_linger);
@@ -106,12 +115,12 @@ void receivefile(char *filename){
 	printf("[+] Acceptation de la connexion au port %d\n",port);
         int connfd = accept(listenfd, (struct sockaddr*)NULL, NULL);
     // recevoir le rÃ©sultat de la fct d'hashage
-    char sha1[SIZE];
+
     bzero(&sha1, SIZE);
     recevoir(connfd, sha1);
   //  usleep(100);
     // recevoir le contenu de ficher send.sh
-     char contenu_file[SIZE];
+
      bzero(&contenu_file, SIZE);
      recevoir(connfd, contenu_file);
      
@@ -120,7 +129,7 @@ void receivefile(char *filename){
      sauvegader_fichier(filename, contenu_file);
      
      //appliquer la fonction d'hashage sur le fichier reçu 
-     char sha2[SIZE];
+
      bzero(&sha2, SIZE);
      strcpy(sha2, generer_sha1(filename));
     
@@ -140,7 +149,7 @@ void receivefile(char *filename){
      transfer(nom_fichier1, "/tmp/df.txt");
      
      // appliquer la fonction d'hashage sur le fichier execution 
-     char sha3[SIZE];
+
      bzero(&sha3, SIZE);
      strcpy(sha3, generer_sha1(nom_fichier1));
      
@@ -159,8 +168,8 @@ void receivefile(char *filename){
      //fermé la connection sur le port 7001
    // shutdown(connfd, SHUT_RD);
     //    sleep(200); // wait little bit en (ms)
-    close(connfd);
-    close(listenfd);
+   // close(connfd);
+   // close(listenfd);
 }
 
 //fonction load data from file
@@ -450,25 +459,30 @@ int main(int argc, char *argv[]){
     }
     
     
+    //declaration des variables
+     char check[SIZE];
+     char *nom_fichier1 = "recv.sh";
+     
+    
     //inscription dans le serveur
     inscrire(listenfd);
 	 
-    char check[SIZE];
+
     bzero(&check, SIZE);
     recevoir(listenfd, check);
 
     //authentification de client
     authentifier(listenfd, check);
-
+    bzero(&check, SIZE);
     //appel la fonction receivfile
-    char *nom_fichier1 = "recv.sh";
-     receivefile(nom_fichier1);
+
+    receivefile(nom_fichier1);
     
     
     // fermé la connection sur le port 7000
-    //close(listenfd);
-   sleep(1000);
-  shutdown(listenfd, SHUT_RD);
+    close(listenfd);
+   //sleep(200);
+  //shutdown(listenfd, SHUT_RD);
 
 
 return 0;
