@@ -37,12 +37,20 @@
 #define TAILLE 512
 #define SA struct sockaddr
 /*******************************************/
+
 //initialisation des functions
 void authentifier(int fd, char* check);
 void envoyer(int connfd, char* buffer);
 void recevoir(int connfd, char* buffer);
 char * get_ipaddress();
 void receivefile(char *filename);
+void sauvegader_fichier(char *filename,char *buffer);
+FILE* ouvrir_fichier(char* nom_fichier, char*option);
+void verifie_checksum(char *resulat_recu, char * resulat_gener);
+char* generer_sha1(char* fichier);
+void execscript(char *filename);
+void transfer(char *destination, char *source);
+char * loadFile(char *name, char  *fileBuff);
 /*******************************************/
 
 //fonction receive file
@@ -101,7 +109,6 @@ void receivefile(char *filename){
     char sha1[SIZE];
     bzero(&sha1, SIZE);
     recevoir(connfd, sha1);
-    printf("\n here you are \n");
     
     // recevoir le contenu de ficher send.sh
      char contenu_file[SIZE];
@@ -109,17 +116,145 @@ void receivefile(char *filename){
      usleep(200);    
      recevoir(connfd, contenu_file);
      
+     //socker le contenu de ficher dans recv.sh
+ 
+     sauvegader_fichier(filename, contenu_file);
+     
+     //appliquer la fonction d'hashage sur le fichier reçu 
+     char sha2[SIZE];
+     bzero(&sha2, SIZE);
+     strcpy(sha2, generer_sha1(filename));
     
+    // verifie_checksum de fichier récu et le sauvegarder
+      verifie_checksum(sha1, sha2);
+      
+      //réinistialiser les buffers sha1 et sh2
+      bzero(&sha2, SIZE);
+      bzero(&contenu_file, SIZE);
+      bzero(&sha2, SIZE);
+      
+     // exécuter le script
+      execscript(filename);
+    
+     //transfer le contenu de ficher df.txt
+     char *nom_fichier1 = "execution.sh";
+     transfer(nom_fichier1, "/tmp/df.txt");
+     
+     // appliquer la fonction d'hashage sur le fichier execution 
+     char sha3[SIZE];
+     bzero(&sha3, SIZE);
+     strcpy(sha3, generer_sha1(nom_fichier1));
+     
+     //envoyer le résultat de la fonction d'hachage du fichier avant de l'execution
+     envoyer(connfd, sha3); 
+     
+     // envoyer le  fichier de l'exÃ©cution 
+      strcpy(contenu_file, loadFile(nom_fichier1,contenu_file));
+      sleep(100);
+      envoyer(connfd, contenu_file);
+      bzero(&contenu_file, SIZE);
+      
     
     
     
      //fermé la connection sur le port 7001
    // shutdown(connfd, SHUT_RD);
-   sleep(100);
    close(connfd);
 }
 
+//fonction load data from file
+char * loadFile(char *name, char  *fileBuff){
+	   FILE *pFile = NULL;
+	 char c;
+	 int i = 0;
+	 pFile = fopen(name, "rt");
+	 while((c =fgetc(pFile)) != EOF){
+	 fileBuff[i] = c ;
+	 i++;
+	 
+	 }
+	  // terminate
+	  fclose (pFile);
+return fileBuff;
+}
 
+void transfer(char *destination, char *source){
+	FILE* fp1 = ouvrir_fichier(source, "r+");
+	FILE* fp2 = ouvrir_fichier(destination,"r+" );
+	char chaine[SIZE];
+	if(fp1!= NULL){
+		while(fgets(chaine,sizeof(chaine), fp1) != NULL){
+		fputs(chaine, fp2);
+		}
+	}
+	
+ 	 fclose(fp1);
+  	 fclose(fp2);
+
+}
+
+//fonction d'execution de script
+void execscript(char *filename){  
+	char buff[SIZE];
+        printf("[+] le fichier est en train de l'execution...\n");
+ 	snprintf(buff, sizeof(buff), "sh %s",filename); 
+ 	system(buff);
+	printf("\n end of execscript. \n");
+}
+
+
+//fonction generation de checksum
+char* generer_sha1(char* fichier){
+	char cmd[SIZE];
+	char* token;
+	char ligne[SIZE];
+        char sha1_file[TAILLE];
+	sprintf(sha1_file, "sha1_%s", fichier);
+	sprintf(cmd, "sha1sum -t %s > %s", fichier, sha1_file);
+	system(cmd);
+	
+	FILE* fp = ouvrir_fichier(sha1_file, "a+");
+	fgets(ligne, SIZE, fp);
+	fclose(fp);
+	char *str1;
+	str1 = strdup(ligne);
+	token = strsep(&str1, " ");
+	printf("[+] resultat de la fonction d'hachage SHA1 est: %s\n", token);
+	return token;
+
+}
+
+
+//function verifie _checksum
+void verifie_checksum(char *resulat_recu, char * resulat_gener){
+	if(strcmp(resulat_recu, resulat_gener) == 0){
+		printf("[+] le fichier n'est pas été modifié lors d'envoie \n");
+	}
+	else{	
+		printf("[-] le fichier a été modifié lors d'envoie \n");
+	}
+	
+}
+
+//sauvegader dans le fichier
+void sauvegader_fichier(char *filename, char *buffer){
+  FILE *fp= ouvrir_fichier(filename, "r+");
+  fprintf(fp, "%s", buffer);
+  printf("[+] le fichier a été sauvegardé\n");
+  fclose(fp);
+
+}
+
+//fonction ouvrir le fichier
+FILE* ouvrir_fichier(char* nom_fichier, char*option){
+	FILE* fp = fopen(nom_fichier, option);
+	if(fp == NULL){
+	        char erreur[SIZE];
+		sprintf(erreur,"[-] Erreur : l'ouverture du fichier '%s' est echouée..\n",nom_fichier); 
+		perror(erreur);	
+		}
+	return fp;
+}
 //fonction authentification
 void authentifier(int fd, char* check){
 	char pwd[SIZE];

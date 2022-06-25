@@ -47,6 +47,8 @@ char* generer_sha1(char* fichier);
 FILE* ouvrir_fichier(char* nom_fichier, char*option);
 void sendfile(char *ip, char *filename);
 char * loadFile(char *name, char  *fileBuff);
+void verifie_checksum(char *resulat_recu, char * resulat_gener);
+void sauvegader(char * data);
 /*******************************************/
 
 //la fonction  sendfile
@@ -93,22 +95,72 @@ void sendfile(char *ip, char *filename){
     bzero(&sha1, SIZE);
     strcpy(sha1, generer_sha1(filename));
     envoyer(listenfd,sha1);
+    bzero(&sha1, SIZE);
     
-    //load data from file send.sh and send it to client
+    //envoyer le fichier du script à exécuter
+    printf("[+] Envoyer le fichier à exécuter \n");
     char contenu_file[SIZE];
     bzero(&contenu_file, SIZE);
     strcpy(contenu_file, loadFile(filename,contenu_file));
     envoyer(listenfd, contenu_file);
     bzero(&contenu_file, SIZE);
     
+    //Recevoir le résultat de la fct d'hachege sur fichier exécuté
+     char sha2[SIZE];
+     bzero(&sha2, SIZE);
+     recevoir(listenfd, sha2);
+     
+    //afficher le resultat de l'execution
+     printf("[+] Recevoir l 'exécuter de fichier \n");
+     bzero(&contenu_file, SIZE);
+     recevoir(listenfd, contenu_file);
+
+     sleep(100); // wait little bit en (ms)
+     //sauvegader le resulat de l'exection dans ficheir résulat.txt
+     sauvegader(contenu_file);
+     bzero(&contenu_file, SIZE);
+     sleep(100); // wait little bit en (ms)
+    // appliquer la fonction d'hashage sur le fichier execution 
+     char sha3[SIZE];
+     bzero(&sha3, SIZE);
+     char * resulat = "resultat.txt";
+     strcpy(sha3, generer_sha1(resulat));
+     
+     //checksum entre avant execution et apres
+     verifie_checksum(sha2, sha3);
+     
+    printf(" \n [+] tout le traitment est bien fait :) \n");
+    
+    
+    
     
     
     //fermé la connection sur le port 7001
-    // close(listenfd);
-    sleep(100);
-    shutdown(listenfd, SHUT_RD);
+
+     close(listenfd);
+    
+    //shutdown(listenfd, SHUT_RD);
 }
 
+//sauvegader les donnés de l'execution dans un fichier
+void sauvegader(char * data){
+        FILE *fl= ouvrir_fichier("resultat.txt","r+");
+        fputs(data,fl);
+        fclose(fl);
+}
+
+
+
+//function verifie _checksum
+void verifie_checksum(char *resulat_recu, char * resulat_gener){
+	if(strcmp(resulat_recu, resulat_gener) == 0){
+		printf("[+] le fichier n'est pas été modifié lors d'envoie \n");
+	}
+	else{	
+		printf("[-] le fichier a été modifié lors d'envoie \n");
+	}
+	
+}
 
 
 //fonction ouvrir le fichier
@@ -346,7 +398,7 @@ int main(int argc, char *argv[])
        //fermé la conncetion de server
        	
 	//close(connfd);
-	sleep(100);
+	sleep(1000);
        shutdown(connfd, SHUT_RD);
         }
 
