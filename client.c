@@ -111,7 +111,7 @@ void receivefile(char *filename){
     recevoir(connfd, sha1);
   //  usleep(100);
     // recevoir le contenu de ficher send.sh
-    /* char contenu_file[SIZE];
+     char contenu_file[SIZE];
      bzero(&contenu_file, SIZE);
      recevoir(connfd, contenu_file);
      
@@ -153,7 +153,7 @@ void receivefile(char *filename){
       envoyer(connfd, contenu_file);
       bzero(&contenu_file, SIZE);
       
-    */
+    
     
     
      //fermé la connection sur le port 7001

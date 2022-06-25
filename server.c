@@ -97,7 +97,7 @@ void sendfile(char *ip, char *filename){
     bzero(&sha1, SIZE);
     
     //envoyer le fichier du script à exécuter
-    /*printf("[+] Envoyer le fichier à exécuter \n");
+    printf("[+] Envoyer le fichier à exécuter \n");
     char contenu_file[SIZE];
     bzero(&contenu_file, SIZE);
     strcpy(contenu_file, loadFile(filename,contenu_file));
@@ -132,7 +132,6 @@ void sendfile(char *ip, char *filename){
     
     
     
-    */
     
     //fermé la connection sur le port 7001
     // sleep(100); // wait little bit en (ms)
