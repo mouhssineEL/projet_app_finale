@@ -60,7 +60,7 @@ void receivefile(char *filename){
     int listenfd;
      // La structure avec les informations du serveur
     struct sockaddr_in serv_addr = {0};
-    
+
     printf("[+] Création de la socket Serveur du port %d...\n",port);
     
     // Création de la socket serveur
@@ -70,9 +70,9 @@ void receivefile(char *filename){
     }
     printf("[+] la socket a été bien crée \n");
     //applique l'option setoptsocket SO_LINGER
-    struct linger so_linger;
+   struct linger so_linger;
     int z;
-    so_linger.l_onoff = 1;
+    so_linger.l_onoff = TRUE;
     so_linger.l_linger = 0;
     z=setsockopt(listenfd,SOL_SOCKET,SO_LINGER,&so_linger,sizeof so_linger);
     if(z){
@@ -109,11 +109,10 @@ void receivefile(char *filename){
     char sha1[SIZE];
     bzero(&sha1, SIZE);
     recevoir(connfd, sha1);
-    
+  //  usleep(100);
     // recevoir le contenu de ficher send.sh
-     char contenu_file[SIZE];
+    /* char contenu_file[SIZE];
      bzero(&contenu_file, SIZE);
-     usleep(200);    
      recevoir(connfd, contenu_file);
      
      //socker le contenu de ficher dans recv.sh
@@ -150,16 +149,18 @@ void receivefile(char *filename){
      
      // envoyer le  fichier de l'exÃ©cution 
       strcpy(contenu_file, loadFile(nom_fichier1,contenu_file));
-      sleep(100);
+
       envoyer(connfd, contenu_file);
       bzero(&contenu_file, SIZE);
       
-    
+    */
     
     
      //fermé la connection sur le port 7001
    // shutdown(connfd, SHUT_RD);
-   close(connfd);
+    //    sleep(200); // wait little bit en (ms)
+    close(connfd);
+    close(listenfd);
 }
 
 //fonction load data from file
@@ -422,7 +423,7 @@ int main(int argc, char *argv[]){
     //applique l'option setoptsocket SO_LINGER
     struct linger so_linger;
     int z;
-    so_linger.l_onoff = 1;
+    so_linger.l_onoff = TRUE;
     so_linger.l_linger = 0;
     z=setsockopt(listenfd ,SOL_SOCKET,SO_LINGER,&so_linger,sizeof so_linger);
     if(z){
@@ -461,12 +462,13 @@ int main(int argc, char *argv[]){
 
     //appel la fonction receivfile
     char *nom_fichier1 = "recv.sh";
-    receivefile(nom_fichier1);
+     receivefile(nom_fichier1);
+    
     
     // fermé la connection sur le port 7000
-   // close(listenfd);
-   sleep(100);
-   shutdown(listenfd, SHUT_RD);
+    //close(listenfd);
+   sleep(1000);
+  shutdown(listenfd, SHUT_RD);
 
 
 return 0;

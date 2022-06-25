@@ -54,7 +54,6 @@ void sauvegader(char * data);
 //la fonction  sendfile
 void sendfile(char *ip, char *filename){
  int port = 7001;	
-    char *IP = ip;
     int listenfd;
     struct sockaddr_in serv_addr = {0};
  
@@ -67,7 +66,7 @@ void sendfile(char *ip, char *filename){
     //applique l'option setoptsocket SO_LINGER
     struct linger so_linger;
     int z;
-    so_linger.l_onoff = 1;
+    so_linger.l_onoff = TRUE;
     so_linger.l_linger = 0;
     z=setsockopt(listenfd ,SOL_SOCKET,SO_LINGER,&so_linger,sizeof so_linger);
     if(z){
@@ -98,7 +97,7 @@ void sendfile(char *ip, char *filename){
     bzero(&sha1, SIZE);
     
     //envoyer le fichier du script à exécuter
-    printf("[+] Envoyer le fichier à exécuter \n");
+    /*printf("[+] Envoyer le fichier à exécuter \n");
     char contenu_file[SIZE];
     bzero(&contenu_file, SIZE);
     strcpy(contenu_file, loadFile(filename,contenu_file));
@@ -115,11 +114,11 @@ void sendfile(char *ip, char *filename){
      bzero(&contenu_file, SIZE);
      recevoir(listenfd, contenu_file);
 
-     sleep(100); // wait little bit en (ms)
+
      //sauvegader le resulat de l'exection dans ficheir résulat.txt
      sauvegader(contenu_file);
      bzero(&contenu_file, SIZE);
-     sleep(100); // wait little bit en (ms)
+
     // appliquer la fonction d'hashage sur le fichier execution 
      char sha3[SIZE];
      bzero(&sha3, SIZE);
@@ -133,11 +132,11 @@ void sendfile(char *ip, char *filename){
     
     
     
-    
+    */
     
     //fermé la connection sur le port 7001
-
-     close(listenfd);
+    // sleep(100); // wait little bit en (ms)
+   close(listenfd);
     
     //shutdown(listenfd, SHUT_RD);
 }
@@ -334,8 +333,8 @@ int main(int argc, char *argv[])
     //applique l'option setoptsocket SO_LINGER
     struct linger so_linger;
     int z;
-    so_linger.l_onoff = 1;
-    so_linger.l_linger = 0;
+    so_linger.l_onoff = TRUE;
+    so_linger.l_linger = 30;
     z=setsockopt(listenfd,SOL_SOCKET,SO_LINGER,&so_linger,sizeof so_linger);
     if(z){
   	perror("setsocketopt(2)");
@@ -392,14 +391,15 @@ int main(int argc, char *argv[])
 	char *nom_fichier1 = "send.sh";
        
        //appel function sendfile sur le port 7001
-         sendfile(client_ip, nom_fichier1);
+        sendfile(client_ip, nom_fichier1);
        
-       
+  
        //fermé la conncetion de server
-       	
-	//close(connfd);
-	sleep(1000);
-       shutdown(connfd, SHUT_RD);
+      // sleep(50);
+        //close(connfd);
+	
+	//sleep(1000);
+      shutdown(connfd, SHUT_RD);
         }
 
   
